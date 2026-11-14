@@ -444,7 +444,7 @@ fn numeric_function_type(name string, return_type Type, arg_types []Type) Type {
 	match name {
 		'ABS' {
 			// ISO/IEC 9075-2:2023, 6.31, <numeric value function>, Syntax Rules, 11
-			return Type{return_type.typ, p1, s1, false}
+			return Type{return_type.typ, p1, s1, false, false}
 		}
 		'MOD' {
 			// The declared type is that of the divisor, which must have a scale of 0.
@@ -455,7 +455,7 @@ fn numeric_function_type(name string, return_type Type, arg_types []Type) Type {
 			p2, s2 := arg_types[1].exact_precision(), arg_types[1].scale
 			scale := if s1 > s2 { s1 } else { s2 }
 			size := if p2 == 0 { 0 } else { p2 - s2 + scale }
-			return Type{return_type.typ, size, scale, false}
+			return Type{return_type.typ, size, scale, false, false}
 		}
 		'FLOOR', 'CEIL', 'CEILING' {
 			// The precision is implementation-defined and the scale is 0. A fractional
@@ -463,14 +463,14 @@ fn numeric_function_type(name string, return_type Type, arg_types []Type) Type {
 			//
 			// ISO/IEC 9075-2:2023, 6.31, <numeric value function>, Syntax Rules, 20.a
 			size := if p1 == 0 || s1 == 0 { p1 } else { p1 - s1 + 1 }
-			return Type{return_type.typ, size, 0, false}
+			return Type{return_type.typ, size, 0, false, false}
 		}
 		'WIDTH_BUCKET' {
 			// The declared type is that of the count, which must have a scale of 0.
 			//
 			// ISO/IEC 9075-2:2023, 6.31, <numeric value function>, Syntax Rules, 21
 			count := arg_types[3]
-			return Type{count.typ, count.exact_precision(), 0, false}
+			return Type{count.typ, count.exact_precision(), 0, false, false}
 		}
 		else {
 			return return_type
@@ -486,7 +486,7 @@ fn with_numeric_type(v Value, typ Type) Value {
 	}
 
 	n := v.numeric_value()
-	t := Type{v.typ.typ, typ.size, typ.scale, false}
+	t := Type{v.typ.typ, typ.size, typ.scale, false, false}
 	if t.typ == .is_numeric {
 		return new_numeric_value_from_numeric(new_numeric(t, n.numerator, n.denominator))
 	}
